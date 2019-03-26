@@ -41,7 +41,11 @@ class Equation:
 			coef = 1.0
 			power = 0.0
 			if kind == 'UNKNOWN':
-				coef = float(value.split('*')[0]) if '*' in value else float(value.split('X')[0])
+				if '*' in value:
+					coef = float(value.split('*')[0])
+				else:
+					split = value.split('X')
+					coef = 1 if split[0] == '' else float(split[0])
 				power = 1 if '^' not in value else float(value.split('^')[1])
 			if kind == 'NUMBER':
 				coef = float(value) if '.' in value else int(value)
@@ -98,9 +102,9 @@ class Equation:
 	def solve_equation(self):
 		if float(max(self.powers_left.keys())) > 2:
 			error("The polynomial degree is stricly greater than 2, I can't solve")
-		a = self.powers_left.get('2.0', 0)
-		b = self.powers_left.get('1.0', 0)
-		c = self.powers_left.get('0.0', 0)
+		a = self.powers_left.get(2, 0)
+		b = self.powers_left.get(1, 0)
+		c = self.powers_left.get(0, 0)
 		delta = b**2 - 4 * a * c
 		if a:
 			if delta == 0:
@@ -108,7 +112,7 @@ class Equation:
 				print("Disciminant is 0, unique solution is\n{}".format(x1))
 			elif delta > 0:
 				x1 = (-1 * b - delta**0.5) / (2 * a)
-				x2 = (-1 * b + delta * 0.5) / (2 * a)
+				x2 = (-1 * b + delta**0.5) / (2 * a)
 				print("Disciminant is strictly positive, the two solutions are\n{}\n{}".format(x1, x2))
 			else:
 				print("Complex solution exists")

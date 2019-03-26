@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/local/bin/python3
 import re
 import sys
 
@@ -13,15 +13,11 @@ def main():
 	eq.parse_equation()
 	output_stack_left = create_rpn(eq.tokens_left)
 	output_stack_right = create_rpn(eq.tokens_right)
-	for token in output_stack_left:
-		print(token.value, end=" ")
 	left_stack = resolve_rpn(output_stack_left)
 	right_stack = resolve_rpn(output_stack_right)
 	eq.powers_right = eq.create_dict(right_stack)
 	eq.powers_left = eq.create_dict(left_stack)
 	eq.reduce_equation()
-	print(eq.powers_right)
-	print(eq.powers_left)
 	eq.solve_equation()
 
 def create_rpn(tokens):
