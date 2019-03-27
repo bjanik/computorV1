@@ -3,6 +3,13 @@ import re
 from token import Token
 from utils import error
 
+class Token:
+	def __init__(self, value, kind, coef=1, power=0):
+		self.value = value
+		self.kind = kind
+		self.coef = coef
+		self.power = power
+
 class Equation:
 	""" Class representing the equation, left side and right side"""
 
@@ -11,8 +18,8 @@ class Equation:
 		self.powers_right = {}
 		self.powers_left = {}
 		self._initial_checks()
-		self.str_left = self.str.split('=')[0].strip()
-		self.str_right = self.str.split('=')[1].strip()
+		self.str_left = self.str.split('=')[0]
+		self.str_right = self.str.split('=')[1]
 		if self.str_left == '' or self.str_right == '':
 			error("Error: empty side of equation")
 		print(self.str_left, '=', self.str_right)
@@ -31,8 +38,9 @@ class Equation:
 		token_specification = [
 		    ("UNKNOWN", r'(\d+(\.\d*)?(\*)?)?[Xx](\^\d+(\.\d*)?)?'),
 		    ('NUMBER',  r'\d+(\.\d*)?'),   # Integer or decimal number
-		    ('OP',       r'[+\-*]'),      # Arithmetic operators
+		    ('OP',       r'[+\-*]'),       # Arithmetic operators
 		    ('MISMATCH', r'.'),            # Any other character
+		    ('SKIP', r' \t'),
 		]
 		tok_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_specification)
 		for tok in re.finditer(tok_regex, string):
@@ -40,6 +48,8 @@ class Equation:
 			value = tok.group()
 			coef = 1.0
 			power = 0.0
+			if kind == 'SKIP':
+				continue
 			if kind == 'UNKNOWN':
 				if '*' in value:
 					coef = float(value.split('*')[0])
@@ -58,7 +68,8 @@ class Equation:
 	def parse_equation(self):
 		for token_list in [self.tokens_left, self.tokens_right]:
 			prev_token = None
-			for token in token_list:
+			todel = -1
+			for count,token in enumerate(token_list):
 				if prev_token is not None:
 					if (token.kind in ['NUMBER', 'UNKNOWN'] and prev_token.kind in ['NUMBER', 'UNKNOWN']) or token.kind == prev_token.kind:
 						error("Parsing error")
@@ -66,8 +77,17 @@ class Equation:
 						token.coef *= -1
 						prev_token.value = '+'
 				prev_token = token
+				if count == 0:
+					if prev_token.value == '*':
+						error("Parsing error")
+					if prev_token.kind == 'OP':
+						todel = count
+						if prev_token.value == '-':
+							token.coef *= -1
 			if prev_token.kind == "OP":
 				error("Parsing error")
+			if todel > -1:
+				del token_list[todel]
 
 	def reduce_equation(self):
 		for power in self.powers_right.keys():
@@ -100,11 +120,15 @@ class Equation:
 		return dico
 		
 	def solve_equation(self):
-		if float(max(self.powers_left.keys())) > 2:
-			error("The polynomial degree is stricly greater than 2, I can't solve")
+		for key in self.powers_left.keys():
+			if float(max(self.powers_left.keys())) > 2:
+				error("The polynomial degree is stricly greater than 2, I can't solve")
+			if key not in [0,1,2]:
+				error("Cannot solve equation of degree {}".format(key))
 		a = self.powers_left.get(2, 0)
 		b = self.powers_left.get(1, 0)
 		c = self.powers_left.get(0, 0)
+		print(a, b, c)
 		delta = b**2 - 4 * a * c
 		if a:
 			if delta == 0:
@@ -116,3 +140,14 @@ class Equation:
 				print("Disciminant is strictly positive, the two solutions are\n{}\n{}".format(x1, x2))
 			else:
 				print("Complex solution exists")
+		elif a == 0:
+			if b == 0 and c == 0:
+				print("All real numbers are solutions")
+			elif b == 0:
+				print("This is nonsense")
+			else:
+				print("The polynomial degree is one, unique solution is\n{}".format(-1 * c / b))
+			
+
+
+

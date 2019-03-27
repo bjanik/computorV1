@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/python3
 import re
 import sys
 
@@ -45,16 +45,14 @@ def resolve_rpn(input_stack):
 			op1 = stack.pop()
 			op2 = stack.pop()
 			kind = 'UNKNOWN' if op1.kind == 'UNKNOWN' or op2.kind == 'UNKNOWN' else 'NUMBER'
-			coef = op1.coef * op2.coef
-			power = op1.power + op2.power if coef != 0 else 0 
-			tok = Token("", kind, coef, power)
+			power = op1.power + op2.power if op1.coef * op2.coef != 0 else 0 
+			tok = Token("", kind, op1.coef * op2.coef, power)
 			stack.append(tok)
 		elif token.value == '+':
 			op1 = stack.pop()
 			op2 = stack.pop()
 			if op1.kind == op2.kind and op1.power == op2.power:
-				coef = op1.coef + op2.coef
-				tok = Token("", op1.kind, coef, power)
+				tok = Token("", op1.kind, op1.coef + op2.coef, op1.power)
 				stack.append(tok)
 			else:
 				stack.append(op2)
