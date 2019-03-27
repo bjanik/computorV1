@@ -1,7 +1,7 @@
 import re
 
 from token import Token
-from utils import error
+from utils import *
 
 class Token:
 	def __init__(self, value, kind, coef=1, power=0):
@@ -18,8 +18,8 @@ class Equation:
 		self.powers_right = {}
 		self.powers_left = {}
 		self._initial_checks()
-		self.str_left = self.str.split('=')[0]
-		self.str_right = self.str.split('=')[1]
+		self.str_left = self.str.split('=')[0].strip()
+		self.str_right = self.str.split('=')[1].strip()
 		if self.str_left == '' or self.str_right == '':
 			error("Error: empty side of equation")
 		print(self.str_left, '=', self.str_right)
@@ -54,7 +54,7 @@ class Equation:
 				if '*' in value:
 					coef = float(value.split('*')[0])
 				else:
-					split = value.split('X')
+					split = value.split('X') if 'X' in value else value.split('x')
 					coef = 1 if split[0] == '' else float(split[0])
 				power = 1 if '^' not in value else float(value.split('^')[1])
 			if kind == 'NUMBER':
@@ -95,16 +95,28 @@ class Equation:
 			if coef is None:
 				self.powers_left[power] = self.powers_right[power] * -1
 			else:
-				self.powers_left[power] -= self.powers_right[power] 
+				self.powers_left[power] -= self.powers_right[power]
+		# for key in list(self.powers_left.keys()):
+		# 	if self.powers_left[key] == 0.0:
+		# 		del self.powers_left[key]
 
 	def print_reduced_equation(self):
 		for power, coef in sorted(self.powers_left.items()):
-			if power == '0':
+			if power == 0:
 				print(coef, end="")
-			elif power == '1':
-				print("{}*X".format(coef), end="")
+			elif power == 1:
+				if power != min(self.powers_left.keys()) and coef > 0:
+					print('+', end="")
+				if coef != 1:
+					print(coef, end="")
+				print("X", end="")
 			else:
-				print("{}*X^{}".format(coef, power), end="")
+				if power != min(self.powers_left.keys()) and coef > 0:
+					print('+', end="")
+				if coef != 1:
+					print(coef, end="")
+				if coef != 0:
+					print("X^{}".format(power), end="")
 		print(" = 0")
 
 	def create_dict(self, stack):
@@ -114,29 +126,30 @@ class Equation:
 				dico[token.power] = token.coef
 			else:
 				dico[token.power] += token.coef
-		for key in list(dico.keys()):
-			if dico[key] == 0:
-				del dico[key]
+		l = [0, 1, 2]
+		for key in dico.keys():
+			if key in l:
+				dico[key] = int(dico[key])
+				key = int(key)
 		return dico
 		
 	def solve_equation(self):
 		for key in self.powers_left.keys():
 			if float(max(self.powers_left.keys())) > 2:
 				error("The polynomial degree is stricly greater than 2, I can't solve")
-			if key not in [0,1,2]:
+			if key not in [0, 1, 2]:
 				error("Cannot solve equation of degree {}".format(key))
 		a = self.powers_left.get(2, 0)
 		b = self.powers_left.get(1, 0)
 		c = self.powers_left.get(0, 0)
-		print(a, b, c)
 		delta = b**2 - 4 * a * c
 		if a:
 			if delta == 0:
 				x1 = -1 * (b / (2 * a))
 				print("Disciminant is 0, unique solution is\n{}".format(x1))
 			elif delta > 0:
-				x1 = (-1 * b - delta**0.5) / (2 * a)
-				x2 = (-1 * b + delta**0.5) / (2 * a)
+				x1 = (-1 * b - round(ft_sqrt(delta), 5)) / (2 * a)
+				x2 = (-1 * b + round(ft_sqrt(delta), 5)) / (2 * a)
 				print("Disciminant is strictly positive, the two solutions are\n{}\n{}".format(x1, x2))
 			else:
 				print("Complex solution exists")
@@ -144,10 +157,6 @@ class Equation:
 			if b == 0 and c == 0:
 				print("All real numbers are solutions")
 			elif b == 0:
-				print("This is nonsense")
+				error("This is nonsense")
 			else:
 				print("The polynomial degree is one, unique solution is\n{}".format(-1 * c / b))
-			
-
-
-

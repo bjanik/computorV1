@@ -11,13 +11,10 @@ def main():
 		error("Missing input")
 	eq = Equation(sys.argv[1])
 	eq.parse_equation()
-	output_stack_left = create_rpn(eq.tokens_left)
-	output_stack_right = create_rpn(eq.tokens_right)
-	left_stack = resolve_rpn(output_stack_left)
-	right_stack = resolve_rpn(output_stack_right)
-	eq.powers_right = eq.create_dict(right_stack)
-	eq.powers_left = eq.create_dict(left_stack)
+	eq.powers_right = eq.create_dict(resolve_rpn(create_rpn(eq.tokens_right)))
+	eq.powers_left = eq.create_dict(resolve_rpn(create_rpn(eq.tokens_left)))
 	eq.reduce_equation()
+	eq.print_reduced_equation()
 	eq.solve_equation()
 
 def create_rpn(tokens):
