@@ -1,12 +1,20 @@
 import sys
 
 def ft_sqrt(number):
-    x = 1
+    x = number
     i = 0
+    error = 0.000001
     while i < number:
-        x = 0.5 * (x + (number / x))
+        new_x = 0.5 * (x + (number / x))
+        if ft_abs(x - new_x) < error:
+            return new_x
+        x = new_x
         i += 1
-    return x
+    return new_x
+
+
+# def ft_sqrt(number):
+    
 
 def ft_abs(number):
   	if number < 0:

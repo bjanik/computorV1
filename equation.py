@@ -22,7 +22,7 @@ class Equation:
 		self.str_right = self.str.split('=')[1].strip()
 		if self.str_left == '' or self.str_right == '':
 			error("Error: empty side of equation")
-		print(self.str_left, '=', self.str_right)
+		# print(self.str_left, '=', self.str_right)
 		self.tokens_left = self._tokenize(self.str_left)
 		self.tokens_right = self._tokenize(self.str_right)
 		
@@ -96,27 +96,34 @@ class Equation:
 				self.powers_left[power] = self.powers_right[power] * -1
 			else:
 				self.powers_left[power] -= self.powers_right[power]
-		# for key in list(self.powers_left.keys()):
-		# 	if self.powers_left[key] == 0.0:
-		# 		del self.powers_left[key]
+		for key in list(self.powers_left.keys()):
+			if self.powers_left[key] == 0.0:
+				del self.powers_left[key]
 
 	def print_reduced_equation(self):
+		print("Reduced equation: ", end="")
 		for power, coef in sorted(self.powers_left.items()):
 			if power == 0:
 				print(coef, end="")
 			elif power == 1:
 				if power != min(self.powers_left.keys()) and coef > 0:
 					print('+', end="")
-				if coef != 1:
+				if coef == -1:
+					print('-', end="")
+				elif coef != 1:
 					print(coef, end="")
 				print("X", end="")
 			else:
 				if power != min(self.powers_left.keys()) and coef > 0:
 					print('+', end="")
-				if coef != 1:
+				if coef == -1:
+					print('-', end="")
+				elif coef != 1:
 					print(coef, end="")
 				if coef != 0:
 					print("X^{}".format(power), end="")
+		if len(self.powers_left.keys()) == 0:
+			print("0X", end="")
 		print(" = 0")
 
 	def create_dict(self, stack):
@@ -126,16 +133,11 @@ class Equation:
 				dico[token.power] = token.coef
 			else:
 				dico[token.power] += token.coef
-		l = [0, 1, 2]
-		for key in dico.keys():
-			if key in l:
-				dico[key] = int(dico[key])
-				key = int(key)
 		return dico
 		
 	def solve_equation(self):
 		for key in self.powers_left.keys():
-			if float(max(self.powers_left.keys())) > 2:
+			if key > 2:
 				error("The polynomial degree is stricly greater than 2, I can't solve")
 			if key not in [0, 1, 2]:
 				error("Cannot solve equation of degree {}".format(key))
@@ -143,17 +145,32 @@ class Equation:
 		b = self.powers_left.get(1, 0)
 		c = self.powers_left.get(0, 0)
 		delta = b**2 - 4 * a * c
+		print("a = {}".format(a))
+		print("b = {}".format(b))
+		print("c = {}".format(c))
+		if a != 0:
+			print("Calculating discriminant delta = b^2 - 4ac = {}".format(delta))
 		if a:
 			if delta == 0:
-				x1 = -1 * (b / (2 * a))
-				print("Disciminant is 0, unique solution is\n{}".format(x1))
+				x1 = (b / (2 * a))
+				if x1 != 0:
+					x1 *= -1
+				print("Discriminant is 0, unique solution is\n{}".format(x1))
 			elif delta > 0:
-				x1 = (-1 * b - round(ft_sqrt(delta), 5)) / (2 * a)
-				x2 = (-1 * b + round(ft_sqrt(delta), 5)) / (2 * a)
-				print("Disciminant is strictly positive, the two solutions are\n{}\n{}".format(x1, x2))
+				sqrt = ft_sqrt(delta)
+				x1 = (-1 * b - sqrt) / (2 * a)
+				x2 = (-1 * b + sqrt) / (2 * a)
+				print("Discriminant is strictly positive, the two solutions are\n{}\n{}".format(x1, x2))
 			else:
-				print("Complex solution exists")
-		elif a == 0:
+				sqrt = ft_sqrt(ft_abs(delta))
+				z_b = -b / (2 * a)
+				z1 = -sqrt / (2 * a)
+				z2 = sqrt / (2 * a)
+				print("Discriminant is strictly negative, the two complex solutions are\n{}".format(z_b), end="")
+				print("{0:+}i".format(z1))
+				print("{}".format(z_b), end="")
+				print("{0:+}i".format(z2))
+		else:
 			if b == 0 and c == 0:
 				print("All real numbers are solutions")
 			elif b == 0:

@@ -1,21 +1,12 @@
 #!/usr/bin/python3
+import numpy as np
+import matplotlib.pyplot as plt
 import re
 import sys
 
 from equation import Equation
 from token import Token
 from utils import error
-
-def main():
-	if len(sys.argv) == 1:
-		error("Missing input")
-	eq = Equation(sys.argv[1])
-	eq.parse_equation()
-	eq.powers_right = eq.create_dict(resolve_rpn(create_rpn(eq.tokens_right)))
-	eq.powers_left = eq.create_dict(resolve_rpn(create_rpn(eq.tokens_left)))
-	eq.reduce_equation()
-	eq.print_reduced_equation()
-	eq.solve_equation()
 
 def create_rpn(tokens):
 	op_precedence = {'+': 0, '*': 1}
@@ -56,5 +47,19 @@ def resolve_rpn(input_stack):
 				stack.append(op1)
 	return stack
 
+def main():
+	if len(sys.argv) == 1:
+		error("Missing input")
+	eq = Equation(sys.argv[1])
+	eq.parse_equation()
+	eq.powers_right = eq.create_dict(resolve_rpn(create_rpn(eq.tokens_right)))
+	eq.powers_left = eq.create_dict(resolve_rpn(create_rpn(eq.tokens_left)))
+	eq.reduce_equation()
+	eq.print_reduced_equation()
+	eq.solve_equation()
+
 if __name__ == "__main__":
-	main()
+	try:
+		main()
+	except KeyboardInterrupt:
+		sys.exit(130)
